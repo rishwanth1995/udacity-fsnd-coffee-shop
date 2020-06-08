@@ -51,7 +51,8 @@ def get_drinks():
 '''
 
 @app.route('/drinks-detail')
-def get_drink_details:
+@requires_auth('get:drinks-detail')
+def get_drink_details(payload):
     
     drinks = Drink.query.order_by(Drink.id).all()
     
@@ -73,7 +74,8 @@ def get_drink_details:
         or appropriate status code indicating reason for failure
 '''
 @app.route('/drinks', methods = ['POST'])
-def create_drink():
+@requires_auth('post:drinks')
+def create_drink(payload):
     
     drink_json = request.get_json()
     if not ('title' in drink_json and 'recipe' in drink_json):
@@ -84,10 +86,10 @@ def create_drink():
         if isinstance(recipe, dict):
             recipe = [recipe]
         drink = Drink(title=drink_json['title'],
-                      recipe=json.dumps(recipe)
-        
-        drink.insert()
+                      recipe=json.dumps(recipe))
 
+        drink.insert()
+        
     except BaseException:
         abort(400)
 
@@ -110,7 +112,8 @@ def create_drink():
 '''
 
 @app.route('drinks/<int:drink_id>', methods=['PATCH'])
-def update_drink(drink_id):
+@requires_auth('patch:drinks')
+def update_drink(payload, drink_id):
     
     drink_json = request.get_json()
     
@@ -145,7 +148,8 @@ def update_drink(drink_id):
         or appropriate status code indicating reason for failure
 '''
 @app.route('drinks/<int:drink_id>', methods=['DELETE'])
-def delete_drink(drink_id):
+@requires_auth('delete:drinks')
+def delete_drink(payload, drink_id):
     
     drink = Drink.query.filter(Drink.id == id).one_or_none()
 
