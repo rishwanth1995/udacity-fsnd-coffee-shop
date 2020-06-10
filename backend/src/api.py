@@ -31,13 +31,10 @@ db_drop_and_create_all()
 def get_drinks():
     drinks = Drink.query.order_by(Drink.id).all()
     
-    if((len(drinks)) == 0):
-        abort(404)
-    
     return jsonify({
         'success' : True,
         'drinks' : [drink.short() for drink in drinks]       
-    }) 
+    }), 200
     
 
 
@@ -56,13 +53,11 @@ def get_drink_details(payload):
     
     drinks = Drink.query.order_by(Drink.id).all()
     
-    if((len(drinks)) == 0):
-        abort(404)
     
     return jsonify({
         'success' : True,
         'drinks' : [drink.long() for drink in drinks]
-    })
+    }), 200
 
 '''
 @TODO implement endpoint
@@ -111,25 +106,25 @@ def create_drink(payload):
         or appropriate status code indicating reason for failure
 '''
 
-@app.route('drinks/<int:drink_id>', methods=['PATCH'])
+@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
 def update_drink(payload, drink_id):
     
     drink_json = request.get_json()
     
-    drink = Drink.query.filter(Drink.id == id).one_or_none()
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
 
     if not drink:
         abort(404)
     
     try:
-        title = drink_json['title']
+        title = drink_json.get('title')
         if title:
             drink.title = title
         
-        recipe = drink_json['recipe']
+        recipe = drink_json.get('recipe')
         if recipe:
-            drink.recipe = json.dumps['recipe']
+            drink.recipe = json.dumps(recipe)
 
         drink.update()
     except BaseException:
@@ -147,11 +142,11 @@ def update_drink(payload, drink_id):
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
-@app.route('drinks/<int:drink_id>', methods=['DELETE'])
+@app.route('/drinks/<int:drink_id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
 def delete_drink(payload, drink_id):
     
-    drink = Drink.query.filter(Drink.id == id).one_or_none()
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
 
     if not drink:
         abort(404)
@@ -161,7 +156,7 @@ def delete_drink(payload, drink_id):
     except BaseException:
         abort(400)
 
-    return jsonify({'success': True, 'delete': id}), 200
+    return jsonify({'success': True, 'delete': drink_id}), 200
     
 
 ## Error Handling
@@ -177,13 +172,6 @@ def unprocessable(error):
                     }), 422
 
 
-@app.errorhandler(422)
-def unprocessable(error):
-    return jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
 
 
 
